@@ -1,4 +1,4 @@
-package main
+package viper
 
 import (
 	"fmt"
@@ -15,6 +15,10 @@ const (
 	envPrefix           = "VIPERDEMO"
 )
 
+var (
+	viperInst = viper.New()
+)
+
 // BindFlag binds a flag to the specified flag set as well as viper and sets the default value
 func BindFlag(flagset *pflag.FlagSet, name, group, shorthand, def, usage string) {
 	//add the flag to the flagset
@@ -26,51 +30,50 @@ func BindFlag(flagset *pflag.FlagSet, name, group, shorthand, def, usage string)
 	}
 
 	// bind the flag to viper
-	if err := viper.BindPFlag(flagName, flagset.Lookup(name)); err != nil {
+	if err := viperInst.BindPFlag(flagName, flagset.Lookup(name)); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	// also set the default value in viper, so that if the flag is not set, viper will use the default value
-	viper.SetDefault(flagName, def)
+	viperInst.SetDefault(flagName, def)
 }
 
 // GetSettings returns a settings struct populated with values from config file, env vars and flags.
 // Precedence is: flags > env vars > config file > defaults
-func GetSettings() *Settings {
-	var cfg Settings
+func GetSettings[k interface{}](config *k) *k {
 
 	initViperConfig("config")
 
-	for _, key := range viper.AllKeys() {
-		fmt.Printf("Key: %s, Value: %v\n", key, viper.Get(key))
+	for _, key := range viperInst.AllKeys() {
+		fmt.Printf("Key: %s, Value: %v\n", key, viperInst.Get(key))
 	}
 
-	if err := viper.Unmarshal(&cfg); err != nil {
+	if err := viperInst.Unmarshal(config); err != nil {
 		// reduce to error once testing is done
 		panic(fmt.Errorf("failed to unmarshal config: %w", err))
 	}
-	return &cfg
+	return config
 }
 
 // initViperConfig initializes viper with the specified config file name,
 // config file locations, and env var prefix
 func initViperConfig(configFileName string) {
 	keyReplacer := strings.NewReplacer(".", "_", "-", "_")
-	viper.SetEnvPrefix(envPrefix)
-	viper.SetEnvKeyReplacer(keyReplacer)
-	viper.AutomaticEnv()
+	viperInst.SetEnvPrefix(envPrefix)
+	viperInst.SetEnvKeyReplacer(keyReplacer)
+	viperInst.AutomaticEnv()
 
 	for _, loc := range strings.Split(configFileLocations, ",") {
-		viper.AddConfigPath(loc)
+		viperInst.AddConfigPath(loc)
 	}
-	viper.SetConfigName(configFileName)
-	viper.SetConfigType(configFileType)
+	viperInst.SetConfigName(configFileName)
+	viperInst.SetConfigType(configFileType)
 
-	err := viper.ReadInConfig()
+	err := viperInst.ReadInConfig()
 	if err != nil {
 		fmt.Printf("Error loading viper: %+v\n", err)
 	} else {
-		fmt.Fprintf(os.Stderr, "Using config file: %s\n", viper.ConfigFileUsed())
+		fmt.Fprintf(os.Stderr, "Using config file: %s\n", viperInst.ConfigFileUsed())
 	}
 
 }

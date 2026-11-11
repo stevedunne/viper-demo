@@ -1,6 +1,10 @@
-package main
+package settings
 
-import "github.com/spf13/pflag"
+import (
+	"viper-demo/go-viper"
+
+	"github.com/spf13/pflag"
+)
 
 type Settings struct {
 	LogLevel string         `mapstructure:"log-level"`
@@ -13,7 +17,7 @@ type ServerSettings struct {
 
 func BindSettingsFlags(flagset *pflag.FlagSet) {
 
-	BindFlag(flagset, "log-level", "", "l", "info", "Log level (debug, info, warn, error)")
-	BindFlag(flagset, "port", "server", "p", "8080", "Server port")
+	viper.BindFlag(flagset, "log-level", "", "l", "info", "Log level (debug, info, warn, error)")
+	viper.BindFlag(flagset, "port", "server", "p", "8080", "Server port")
 
 }

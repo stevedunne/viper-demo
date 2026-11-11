@@ -1,9 +1,10 @@
-package main
+package settings
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
+	"viper-demo/go-viper"
 
 	"github.com/spf13/pflag"
 )
@@ -26,11 +27,11 @@ func TestDefaultSettings(t *testing.T) {
 	}
 
 	// act
-	settings := GetSettings()
+	config := viper.GetSettings(&Settings{})
 
 	// assert
-	assertEqual(t, settings.LogLevel, expectedLevel, "LogLevel")
-	assertEqual(t, settings.Server.Port, expectedPort, "Server.Port")
+	assertEqual(t, config.LogLevel, expectedLevel, "LogLevel")
+	assertEqual(t, config.Server.Port, expectedPort, "Server.Port")
 }
 
 func assertEqual(t *testing.T, got, want interface{}, msg string) {
@@ -67,7 +68,7 @@ func TestConfigAndEnvSet_EnvironmentTakesPrecedence(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := GetSettings()
+	settings := viper.GetSettings(&Settings{})
 
 	// assert
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
@@ -97,7 +98,7 @@ func TestConfigFileValues(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := GetSettings()
+	settings := viper.GetSettings(&Settings{})
 
 	// assert
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
@@ -134,7 +135,7 @@ func TestAllSettingsConfigured_CommandLineTakesPrecedence(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := GetSettings()
+	settings := viper.GetSettings(&Settings{})
 
 	// assert
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
