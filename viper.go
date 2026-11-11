@@ -15,6 +15,7 @@ const (
 	envPrefix           = "VIPERDEMO"
 )
 
+// BindFlag binds a flag to the specified flag set as well as viper and sets the default value
 func BindFlag(flagset *pflag.FlagSet, name, group, shorthand, def, usage string) {
 	//add the flag to the flagset
 	flagset.StringP(name, shorthand, def, usage)
@@ -33,10 +34,12 @@ func BindFlag(flagset *pflag.FlagSet, name, group, shorthand, def, usage string)
 	viper.SetDefault(flagName, def)
 }
 
+// GetSettings returns a settings struct populated with values from config file, env vars and flags.
+// Precedence is: flags > env vars > config file > defaults
 func GetSettings() *Settings {
 	var cfg Settings
 
-	InitViperConfig("config")
+	initViperConfig("config")
 
 	for _, key := range viper.AllKeys() {
 		fmt.Printf("Key: %s, Value: %v\n", key, viper.Get(key))
@@ -49,7 +52,9 @@ func GetSettings() *Settings {
 	return &cfg
 }
 
-func InitViperConfig(configFileName string) {
+// initViperConfig initializes viper with the specified config file name,
+// config file locations, and env var prefix
+func initViperConfig(configFileName string) {
 	keyReplacer := strings.NewReplacer(".", "_", "-", "_")
 	viper.SetEnvPrefix(envPrefix)
 	viper.SetEnvKeyReplacer(keyReplacer)
