@@ -1,52 +1,87 @@
-# Viper settings demo
+# Viper Settings Demo
 
-This Cobra application demonstrates loading settings from command-line flags, a YAML config file, environment variables, and defaults. 
+This repository contains a Cobra demo application and an importable helper package at `viper-helper/`. The demo's settings type and flag declarations are in `settings/`; the helper binds flags and loads values into a caller-provided struct.
 
-`main.go` creates and executes the command, 
-`settings.go` defines the settings and their flags
-`viper.go` handles Viper configuration, config-file loading, environment bindings, and unmarshalling.
+## Import the Package
 
-## Precedence
+The module path is `github.com/stevedunne/viper-demo`. Add the package to another application with:
 
-Settings use this order, from highest to lowest priority:
+```sh
+go get github.com/stevedunne/viper-demo/viper-helper@latest
+```
 
-1. A supplied command-line flag, such as `--log-level` or `--port`.
-2. An environment variable.
-3. The corresponding value in the YAML config file.
-4. The built-in default.
+Example using pflag:
 
-The sample config is discovered as `./config/config.yaml` or `./config.yaml`. 
+```go
+package main
 
-`log-level` defaults to `info`, and `server.port` defaults to `8080`.
+import (
+	"fmt"
+	"os"
 
-Environment variables use the `VIPERDEMO_` prefix, with dots and hyphens converted to underscores. For example, `log-level` uses `VIPERDEMO_LOG_LEVEL`, and `server.port` uses `VIPERDEMO_SERVER_PORT`. The environment prefix can be configured in the constants section of [viper.go](viper.go).
+	viperhelper "github.com/stevedunne/viper-demo/viper-helper"
+)
 
-## Run
+type Settings struct {
+	LogLevel string `mapstructure:"log-level"`
+	Server   struct {
+		Port int `mapstructure:"port"`
+	} `mapstructure:"server"`
+}
 
-Basic run - will use the config file values, or fall back to the defaults if no config file is present 
+func main() {
+
+	var command = &cobra.Command{
+		Use:   "settings-demo",
+		Short: "Show how to use settings from config files, env vars and flags",
+		Run: func(cmd *cobra.Command, args []string) {
+
+			settings, err := viperhelper.GetSettings(&settings.Settings{})
+
+			... 
+		},
+	}
+
+	settings.BindSettingsFlags(command.Flags())
+
+	if err := command.Execute(); err != nil {
+		...
+	}
+}
+```
+
+For Cobra, pass `command.Flags()` to `BindFlag` and let Cobra parse the command-line arguments.
+
+## Initialization and Defaults
+
+The helper uses a process-wide singleton. Initialization is optional: without an explicit call, first use selects these defaults:
+
+- Config type: `yaml`
+- Config name: `config`
+- Config search paths: `./` and `./config/`
+- Environment prefix: `VIPERDEMO`
+- Key replacer: dots and hyphens become underscores
+
+To configure the singleton, call `InitViperHelper` before binding flags or loading settings. Its arguments are config type, config name, comma-separated search paths, comma-separated key-replacer pairs, and environment prefix. For example:
+
+```go
+err := viperhelper.InitViperHelper("yaml", "app", "./,./config/", ".,_,-,_", "MYAPP")
+```
+
+Initialization can only happen once. A later call returns an error. `Dispose` clears the singleton; use it only when intentionally resetting the helper, such as in tests.
+
+## Precedence and Errors
+
+Values are resolved in this order: explicitly changed command-line flags, environment variables, config file values, then defaults supplied to `BindFlag`. With the default prefix, `log-level` reads `VIPERDEMO_LOG_LEVEL` and `server.port` reads `VIPERDEMO_SERVER_PORT`.
+
+A missing config file is allowed, so environment variables and defaults can still be used. Other config read failures and unmarshalling failures are returned by `GetSettings`; `BindFlag` also returns binding errors. The application is responsible for handling those errors.
+
+## Run and Test the Demo
+
 ```sh
 go run .
-```
-
-Here the defaults and config values will be overridden by the values specified in the command line 
-```sh
 go run . --log-level debug --port 9000
-```
-
-Use an environment variable to specify the log level
-```sh
 VIPERDEMO_LOG_LEVEL=warn go run .
-```
-
-Here we specify an environment variable and a command line value so the command line will take precidence 
-```sh
 VIPERDEMO_LOG_LEVEL=warn go run . -l info
-```
-
-## Test 
-
-```sh
 go test ./...
 ```
-
-The tests cover defaults, config values, environment-over-config precedence, and command-line overrides.
