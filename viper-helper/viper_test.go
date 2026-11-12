@@ -136,20 +136,39 @@ func TestGetSettingsChangedFlagsOverrideEnvironment(t *testing.T) {
 	assertEqual(t, settings.Server.Port, 9003, "Server.Port")
 }
 
-// func TestInitializationCanOnlyhappenOnce(t *testing.T) {
+func TestInitializationCanOnlyhappenOnce(t *testing.T) {
 
-// 	// Arrange
+	// Arrange
+	Dispose() // Reset the singleton for testing purposes
 
-// 	// Act
-// 	err1 := InitViperHelper("", "", "", "", "")
+	// Act
+	err1 := InitViperHelper("", "", "", "", "")
 
-// 	err2 := InitViperHelper("", "", "", "", "")
+	err2 := InitViperHelper("", "", "", "", "")
 
-// 	// Assert
-// 	if err1 != nil {
-// 		t.Fatalf("First InitViperHelper returned error: %v", err1)
-// 	}
-// 	if err2 == nil {
-// 		t.Fatalf("Second InitViperHelper should have returned error but didn't")
-// 	}
-// }
+	// Assert
+	if err1 != nil {
+		t.Fatalf("First InitViperHelper returned error: %v", err1)
+	}
+	if err2 == nil {
+		t.Fatalf("Second InitViperHelper should have returned error but didn't")
+	}
+}
+
+func TestErrorOnCurruptConfig(t *testing.T) {
+	// Arrange
+	dir := t.TempDir()
+	t.Chdir(dir)
+	config := "lkflkajsdfkasjdhf,xzcvoiuweyr\n"
+	if err := os.WriteFile(filepath.Join(dir, "config.yaml"), []byte(config), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	_, err := GetSettings(&testSettings{})
+
+	// Assert
+	if err == nil {
+		t.Fatalf("GetSettings should have returned an error but didn't: %v", err)
+	}
+}

@@ -36,7 +36,7 @@ func getViperHelper() *viperHelper {
 	mu.Lock()
 	defer mu.Unlock()
 	if instance == nil {
-		newViperHelper("", "", "", "", "")
+		instance = newViperHelper("", "", "", "", "")
 	}
 	return instance
 }
@@ -44,11 +44,11 @@ func getViperHelper() *viperHelper {
 // InitViperHelper allows the user to override the default settings
 // calling this is optional, if not called, the default settings will be used
 func InitViperHelper(fileType, fileName, fileLocations, keyReplacer, environmentPrefix string) error {
+	mu.Lock()
+	defer mu.Unlock()
 	if instance != nil {
 		return fmt.Errorf("viperHelper already initialized")
 	} else {
-		mu.Lock()
-		defer mu.Unlock()
 		instance = newViperHelper(fileType, fileName, fileLocations, keyReplacer, environmentPrefix)
 	}
 	return nil
@@ -56,20 +56,23 @@ func InitViperHelper(fileType, fileName, fileLocations, keyReplacer, environment
 
 func newViperHelper(fileType, fileName, fileLocations, keyReplacer, environmentPrefix string) *viperHelper {
 
-	if instance == nil {
-		fl := stringOrDefault(fileLocations, defaultConfigFileLocations)
-		kr := stringOrDefault(keyReplacer, defaultKeyReplacer)
+	fl := stringOrDefault(fileLocations, defaultConfigFileLocations)
+	kr := stringOrDefault(keyReplacer, defaultKeyReplacer)
 
-		instance = &viperHelper{
-			instance:          viper.New(),
-			fileType:          stringOrDefault(fileType, defaultConfigFileType),
-			fileName:          stringOrDefault(fileName, defaultConfigFileName),
-			fileLocations:     strings.Split(fl, ","),
-			environmentPrefix: stringOrDefault(environmentPrefix, defaultEnvironmentPrefix),
-			keyReplacer:       strings.Split(kr, ","),
-		}
+	return &viperHelper{
+		instance:          viper.New(),
+		fileType:          stringOrDefault(fileType, defaultConfigFileType),
+		fileName:          stringOrDefault(fileName, defaultConfigFileName),
+		fileLocations:     strings.Split(fl, ","),
+		environmentPrefix: stringOrDefault(environmentPrefix, defaultEnvironmentPrefix),
+		keyReplacer:       strings.Split(kr, ","),
 	}
-	return nil
+}
+
+func Dispose() {
+	mu.Lock()
+	defer mu.Unlock()
+	instance = nil
 }
 
 func stringOrDefault(s, def string) string {
