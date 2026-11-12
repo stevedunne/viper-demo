@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"viper-demo/settings"
-	viperhelper "viper-demo/viper-helper"
+
+	"github.com/stevedunne/viper-demo/settings"
+	viperhelper "github.com/stevedunne/viper-demo/viper-helper"
 
 	"github.com/spf13/cobra"
 )
