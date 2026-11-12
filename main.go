@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"viper-demo/go-viper"
 	"viper-demo/settings"
+	viperhelper "viper-demo/viper-helper"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,12 @@ func main() {
 		Short: "Show how to use settings from config files, env vars and flags",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			settings := viper.GetSettings(&settings.Settings{})
+			settings, err := viperhelper.GetSettings(&settings.Settings{})
+
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
 
 			fmt.Printf("Settings: %+v\n", settings)
 		},

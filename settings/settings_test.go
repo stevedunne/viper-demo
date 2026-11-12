@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"viper-demo/go-viper"
+	viperhelper "viper-demo/viper-helper"
 
 	"github.com/spf13/pflag"
 )
@@ -27,9 +27,12 @@ func TestDefaultSettings(t *testing.T) {
 	}
 
 	// act
-	config := viper.GetSettings(&Settings{})
+	config, err := viperhelper.GetSettings(&Settings{})
 
 	// assert
+	if err != nil {
+		t.Fatalf("GetSettings returned error: %v", err)
+	}
 	assertEqual(t, config.LogLevel, expectedLevel, "LogLevel")
 	assertEqual(t, config.Server.Port, expectedPort, "Server.Port")
 }
@@ -68,9 +71,12 @@ func TestConfigAndEnvSet_EnvironmentTakesPrecedence(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := viper.GetSettings(&Settings{})
+	settings, err := viperhelper.GetSettings(&Settings{})
 
 	// assert
+	if err != nil {
+		t.Fatalf("GetSettings returned error: %v", err)
+	}
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
 	assertEqual(t, settings.Server.Port, wantPort, "Server.Port")
 
@@ -98,9 +104,12 @@ func TestConfigFileValues(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := viper.GetSettings(&Settings{})
+	settings, err := viperhelper.GetSettings(&Settings{})
 
 	// assert
+	if err != nil {
+		t.Fatalf("GetSettings returned error: %v", err)
+	}
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
 	assertEqual(t, settings.Server.Port, wantPort, "Server.Port")
 }
@@ -135,9 +144,12 @@ func TestAllSettingsConfigured_CommandLineTakesPrecedence(t *testing.T) {
 
 	// act
 	// get settings and check values
-	settings := viper.GetSettings(&Settings{})
+	settings, err := viperhelper.GetSettings(&Settings{})
 
 	// assert
+	if err != nil {
+		t.Fatalf("GetSettings returned error: %v", err)
+	}
 	assertEqual(t, settings.LogLevel, wantLevel, "LogLevel")
 	assertEqual(t, settings.Server.Port, wantPort, "Server.Port")
 
