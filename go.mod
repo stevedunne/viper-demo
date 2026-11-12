@@ -1,4 +1,4 @@
-module viper-demo
+module github.com/stevedunne/viper-demo
 
 go 1.25.4
 

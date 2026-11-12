@@ -4,7 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	viperhelper "viper-demo/viper-helper"
+
+	viperhelper "github.com/stevedunne/viper-demo/viper-helper"
 
 	"github.com/spf13/pflag"
 )
