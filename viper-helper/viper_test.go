@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/spf13/pflag"
 )
@@ -170,5 +171,41 @@ func TestErrorOnCurruptConfig(t *testing.T) {
 	// Assert
 	if err == nil {
 		t.Fatalf("GetSettings should have returned an error but didn't: %v", err)
+	}
+}
+
+func TestBindBoolFlagProducesCorrectType(t *testing.T) {
+	// Arrange
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	BindBoolFlag(flags, "debug", "", "d", false, "Debug mode")
+
+	// Act
+	flag := flags.Lookup("debug")
+
+	// Assert
+	if flag == nil {
+		t.Fatalf("Flag 'debug' not found")
+	}
+	if flag.Value.Type() != "bool" {
+		t.Fatalf("Flag 'debug' should be of type 'bool' but is of type '%s'", flag.Value.Type())
+	}
+}
+
+func TestBindTimeFlagProducesCorrectType(t *testing.T) {
+	// Arrange
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	BindTimeFlag(flags, "timeout", "", "t", time.Now(), "Timeout")
+
+	// Act
+	flag := flags.Lookup("timeout")
+
+	// Assert
+	if flag == nil {
+		t.Fatalf("Flag 'timeout' not found")
+	}
+	if flag.Value.Type() != "time" {
+		t.Fatalf("Flag 'timeout' should be of type 'time' but is of type '%s'", flag.Value.Type())
 	}
 }
