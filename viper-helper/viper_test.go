@@ -209,3 +209,21 @@ func TestBindTimeFlagProducesCorrectType(t *testing.T) {
 		t.Fatalf("Flag 'timeout' should be of type 'time' but is of type '%s'", flag.Value.Type())
 	}
 }
+
+func TestBindIntFlagProducesCorrectType(t *testing.T) {
+	// Arrange
+
+	flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	BindIntFlag(flags, "port", "", "p", 8080, "Port")
+
+	// Act
+	flag := flags.Lookup("port")
+
+	// Assert
+	if flag == nil {
+		t.Fatalf("Flag 'port' not found")
+	}
+	if flag.Value.Type() != "int" {
+		t.Fatalf("Flag 'port' should be of type 'int' but is of type '%s'", flag.Value.Type())
+	}
+}
